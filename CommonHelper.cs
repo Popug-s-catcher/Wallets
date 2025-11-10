@@ -9,7 +9,7 @@ namespace Wallets
 	/// <summary>
 	/// Валидатор числовых значений.
 	/// </summary>
-	public static class NumberValidator
+	public static class CommonHelper
 	{
 		/// <summary>
 		/// Проверка, что разность чисел <paramref name="leftNumber"/> 
@@ -26,6 +26,30 @@ namespace Wallets
 			{
 				throw new ArgumentException($"Разность чисел не может быть отрицательной!");
 			}
+		}
+
+		/// <summary>
+		/// Ввод числовых данных из консоли.
+		/// </summary>
+		/// <param name="message"> Строковое сообщение для вывода в консоль. </param>
+		/// <returns> Вещественные числа из консоли. </returns>
+		public static double ReadDoubleFromConsole(string message)
+		{
+			Console.WriteLine(message);
+
+			return double.Parse(Console.ReadLine());
+		}
+
+		/// <summary>
+		/// Ввод данных даты из консоли.
+		/// </summary>
+		/// <param name="message"> Строковое сообщение для вывода в консоль. </param>
+		/// <returns> Дату. </returns>
+		public static DateTime ReadDateFromConsole(string message)
+		{
+			Console.WriteLine(message);
+
+			return DateTime.Parse(Console.ReadLine());
 		}
 	}
 }

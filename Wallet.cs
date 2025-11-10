@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Wallets
 {
@@ -96,7 +97,7 @@ namespace Wallets
 			{
 				try
 				{
-					NumberValidator.IsNotNegativeDifference(CurrentBalance, transaction.Amount);
+					CommonHelper.IsNotNegativeDifference(CurrentBalance, transaction.Amount);
 
 					CurrentBalance -= transaction.Amount;
 
@@ -111,7 +112,56 @@ namespace Wallets
 		}
 
 		/// <summary>
-		/// Возвращает информацию о кошельке и его транзакциях в виде строки.
+		/// Расчёт месячных доходов/расходов в зависимости от заданного <paramref name="type"/>.
+		/// </summary>
+		/// <param name="type"> Рассчитываемый тип - доходы или расходы. </param>
+		/// <returns> Вещественная сумма доходов/расходов. </returns>
+		public double CalculateMonthOperationsTotal(TransactionType type, int month)
+		{
+			return _transactions
+				.Where(t => t.Type == TransactionType.Income && t.Date.Month == month)
+				.Sum(t => t.Amount);
+		}
+
+		/// <summary>
+		/// Рассчитывает статистику за выбранный <paramref name="targetMonth"/> транзакций
+		/// кошелька по типам транзакций, сортируя транзакции между собой по возрастанию и группы транзакций по убыванию.
+		/// </summary>
+		/// <param name="targetMonth"> Целевой месяц. </param>
+		/// <returns> Список кортежей (тип транзакции, общая сумма группы, список транзакций) </returns>
+		public List<(TransactionType, double, List<Transaction>)> GetMonthTransactionsStatistics(int targetMonth)
+		{
+			return _transactions
+				.Where(t => t.Date.Month == targetMonth)
+				.GroupBy(x => x.Type)
+				.Select(g => 
+				(
+					g.Key,
+					g.Sum(t => t.Amount),
+					g.OrderBy(t => t.Date).ToList()
+				))
+				.OrderByDescending(g => g.Item2)
+				.ToList();
+		}
+
+		/// <summary>
+		/// Вычисляет три наибольшие затраты за <paramref name="targetMonth"/> для кошелька, сортируя их по убыванию.
+		/// </summary>
+		/// <param name="targetMonth"> Целевой месяц. </param>
+		/// <returns> Список из трёх транзакций. </returns>
+		public List<Transaction> GetMonthBiggestExpenses(int targetMonth)
+		{
+			return _transactions
+				.Where(t => 
+					t.Type == TransactionType.Expense &&
+					t.Date.Month == targetMonth)
+				.OrderByDescending(t => t.Amount)
+				.Take(3)
+				.ToList();
+		}
+
+		/// <summary>
+		/// Возвращает информацию о кошельке и его транзакциях за весь период в виде строки.
 		/// </summary>
 		/// <returns> Строка сведений об объекте. </returns>
 		public string GetInfo()
